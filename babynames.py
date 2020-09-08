@@ -31,6 +31,8 @@ Suggested milestones for incremental development:
  - Fix main() to use the extracted_names list
 """
 
+__author__ = """Greg Spurgeon with help from study group D"""
+
 import sys
 import re
 import argparse
@@ -44,7 +46,35 @@ def extract_names(filename):
     ['2006', 'Aaliyah 91', 'Aaron 57', 'Abagail 895', ...]
     """
     names = []
-    # +++your code here+++
+    # open file and read its contents
+    with open(filename, "r") as file:
+        content = file.read()
+
+    # use regex to search for a pattern to determine the year
+    # use group method to get just the year from the match
+    match = re.search(r"Popularity\sin\s(\d\d\d\d)", content)
+    year = match.group(1)
+    names.append(year)
+
+    # use regex to search for all the boynames girlnames and rank
+    re_names_and_rank = r'<td>(\d+)</td><td>(\w+)</td><td>(\w+)</td>'
+    name_tuples = re.findall(re_names_and_rank, content)
+
+    # loop through name tuples to assign name and rank to dict
+    # the name will be the key and the rank is the value
+    ranked_names = {}
+    for rank, boyname, girlname in name_tuples:
+        if boyname not in ranked_names:
+            ranked_names[boyname] = rank
+        if girlname not in ranked_names:
+            ranked_names[girlname] = rank
+
+    # sort names by their key
+    sort_names = sorted(ranked_names.keys())
+
+    # add results to names list
+    for name in sort_names:
+        names.append(name + " " + ranked_names[name])
     return names
 
 
@@ -82,7 +112,14 @@ def main(args):
     # Use the create_summary flag to decide whether to print the list
     # or to write the list to a summary file (e.g. `baby1990.html.summary`).
 
-    # +++your code here+++
+    for filename in file_list:
+        names = extract_names(filename)
+        file_content = '\n'.join(names)
+        if create_summary:
+            with open(filename + '.summary', 'w') as output:
+                output.write(file_content + '\n')
+        else:
+            print(file_content)
 
 
 if __name__ == '__main__':
